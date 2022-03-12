@@ -1,22 +1,108 @@
 import os
 import datetime
-import speechRecognition as sr
+from urllib import response
+import speech_recognition as sr
+import webbrowser
+from subprocess import call
+import pyautogui
+# import pyttsx3
 
 def speak(audio):
        # This command is to change voice 
        # espeak -ven-us+f4 -s170 "6 new wireless networks found"
+       
+       # engine = pyttsx3.init('sapi5')
+       # voices = engine.getProperty('voices') #getting details of current voice
+       # engine.setProperty('voice', voice[0].id)
 
-       # os.system('espeak'+' "'+audio+'"')  
-       os.system('espeak -ven'+' "'+audio+'"')  
+       os.system('espeak'+' "'+audio+'"')  
+
+def takeCommand():
+    #It takes microphone input from the user and returns string output
+
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        # r.adjust_for_ambient_noise(source)
+        # r.energy_threshold = 1932
+        # r.dynamic_energy_threshold = True
+        # r.pause_threshold=1.2
+        # r.pause_threshold = 1
+        # audio = r.listen(source,timeout=3, phrase_time_limit=3)
+        audio = r.listen(source)
+
+
+    try:
+        print("Recognizing...")    
+        query = r.recognize_google(audio, language='en-in') #Using google for voice recognition.
+        print(f"User said: {query}\n")  #User query will be printed.
+
+    except Exception as e:
+        # print(e)    
+        print("Say that again please...")   #Say that again will be printed in case of improper voice 
+        return "None" #None string will be returned
+    return query
 
 def wishme():
        hour = int(datetime.datetime.now().hour)
        if 12 > hour >= 3:
-              speak("Good Morning Sir")
+            speak("Good Morning Sir")
        if 17 > hour >= 12:
-              speak("Good Afternoon Sir")
+            speak("Good Afternoon Sir")
        if 20 > hour >= 17:
-              speak("Good Evening Sir")
-       print(hour)
+            speak("Good Evening Sir")
+
 
 wishme()
+programSiteList = ["youtube.com","google.com","screener.in","facebook.com","web.whatsapp.com"]
+programCommandList = ["youtube","google","screener","facebook","whatsapp"]
+
+while True:
+    query = takeCommand().lower()
+    # query = "open screener"
+    if "search" in query:
+        if "youtube" in query:
+            query = query.replace("youtube","")
+            query = query.replace("search","")
+            query = query.replace(" ","+")
+            query = query.replace("jarvis","")
+            youtubeQuery = "https://www.youtube.com/results?search_query="+query
+            webbrowser.open(youtubeQuery)
+            speak("Ok sir , Opening Youtube for you")
+
+    elif "google" in query:
+            query = query.replace("google","")
+            query = query.replace("search","")
+            query = query.replace("jarvis","")
+            query = query.replace(" ","+")
+            googleQuery = "https://www.google.com/search?q="+query
+            webbrowser.open(googleQuery)
+            speak("Ok sir , Opening Google for you")
+    
+    elif "buy jarvis" in query or "bye jarvis" in query:
+        speak("Bye sir , See You soon")
+        break
+
+    elif "volume" in query:
+        str = query.split()
+        for i in str:
+            if i.isnumeric():
+                if 0 <= int(i) <= 100:
+                    call(["amixer", "-D", "pulse", "sset", "Master", i+"%"])
+                    speak("Volume set to 30%")
+
+    elif "type" in query:
+        query = query.replace("jarvis","")
+        query = query.replace("type","")
+        pyautogui.write(query, interval=0.1)
+        speak("Typed"+query)
+
+    else:
+        for i in range(len(programCommandList)):
+            openCommand = "open "+ programCommandList[i]
+            if openCommand in query:
+                speak("Ok sir , Opening "+ programCommandList[i])
+                webbrowser.open(programSiteList[i])
+   
+
+    # break
